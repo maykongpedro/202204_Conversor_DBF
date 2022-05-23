@@ -4,28 +4,6 @@
 library(shiny)
 options(shiny.maxRequestSize = 30*1024^2)
 
-
-# Test --------------------------------------------------------------------
-# 
-# arquivo <- readxl::read_xlsx("data-raw/Base_woodstock_OTA2.xlsx")
-# 
-# arquivo |> 
-#     as.data.frame() |> 
-#     foreign::write.dbf(file = "data/Base_woodstock_OTA2.dbf")
-# 
-# # 
-# hp_ws_filled |>
-#     dplyr::select(-PERIOD) |>  # remove PERIOD column
-#     as.data.frame() |>         # convert to data frame
-#     dplyr::mutate(
-#         REMSOFT_ID = as.integer(REMSOFT_ID),
-#         ACTION = as.integer(ACTION),
-#         CUT_PERIOD = as.integer(CUT_PERIOD),
-#         IDADE = as.integer(IDADE)
-#     ) |>
-#     foreign::write.dbf(file = "data/outputs/Base_woodstock_OTA2.dbf")
-
-
 # Ui ----------------------------------------------------------------------
 ui <- shiny::navbarPage(
     
@@ -43,8 +21,28 @@ ui <- shiny::navbarPage(
             multiple = FALSE
         ),
         
-        # uiOutput
-        shiny::uiOutput(outputId = "out_variable_selector"),
+        
+        shiny::radioButtons(
+            inputId = "choose_class",
+            label = "",
+            choices = list(
+                Numeric = "Numeric",
+                Integer = "Integer",
+                Factor = "Factor",
+                Character = "Character",
+                Date = "Date"
+            )
+            ,
+            selected = ""
+        ),
+        
+        shiny::actionButton(inputId = "chg_class", label = "Change"),
+        
+        # uiOutput [1] - column selector
+        shiny::uiOutput(outputId = "variable_selector"),
+        
+        # uiOutput [2] - column type
+        shiny::textOutput(outputId = "variable_type"),
         
         # download
         shiny::downloadButton(outputId = "out_download")
@@ -54,9 +52,6 @@ ui <- shiny::navbarPage(
         
     )
 )
-
-# see only the columns of a dataframe
-# names(mtcars) |> tibble::as_tibble() |> dplyr::rename(variavel = "value")
 
 
 # Server ------------------------------------------------------------------
@@ -69,39 +64,30 @@ server <- function(input, output, session) {
         readxl::read_excel(path = input$inp_file$datapath) |> as.data.frame()
     })
 
-    # output$out_preview1 <- shiny::renderTable({head(raw_file(), n=5)})
-    # output$out_preview1 <- shiny::renderTable(dplyr::glimpse(raw_file()))
-    
     # see details of the file
     # output$out_preview1 <- shiny::renderTable({input$inp_file})
     
     # Transform -----------------------------------------------------------
-    output$out_variable_selector <- shiny::renderUI(
-        # input columns [2]
-        shiny::varSelectInput(
-            inputId = "inp_variable",
-            label = "Coluna:",
-            data = raw_file()
+    output$variable_selector <- shiny::renderUI(
+        
+        shiny::selectInput(
+            inputId = "variable",
+            label = "Selecione a coluna para trocar o tipo de dado:",
+            choices = names(raw_file())
         )
+        
     )
     
-    # tidied_data <- shiny::reactive({
-    #     
-    #     req(input$inp_variable)
-    #     raw_file() |> 
-    #         dplyr::mutate(
-    #             # !!input$inp_variable = as.integer(!!input$inp_variable)
-    #         )
-    #     
-    #     # if (is.null(tidied_data())) {
-    #     #     tidied_data() <- raw_file()
-    #     # }
-    #     
-    # })
-    
+    # Show the type of the selected column
+    output$variable_type <- shiny::renderText({
+        shiny::req(input$variable)
+        print(raw_file()[, input$variable] |> class())
+
+    }
+    )
     
     # Download ------------------------------------------------------------
-    output$out_download <- downloadHandler(
+    output$out_download <- shiny::downloadHandler(
         
         filename = function() {
             paste0(
