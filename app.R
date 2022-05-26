@@ -87,20 +87,29 @@ server <- function(input, output, session) {
     )
     
     # Convert type of the selected column
-    modified_file <- shiny::reactive({
+    modified_file <- shiny::eventReactive(input$chg_class, {
         
-        shiny::req(input$var)
+        # Faz a troca toda vez que clico no botao "change"
+        # Preciso salvar o resultado para que depois da primeira vez ele sempre
+        # use o próprio modified file para realizar esse procedimento
         
-        switch(
-            input$var,
-            "character" = database[, nome_col] <- as.character(database[, nome_col]),
-            "integer" = database[, nome_col] <- as.integer(database[, nome_col]),
-            "factor" = database[, nome_col] <- as.factor(database[, nome_col]),
-            "numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
-            "date" = database[, nome_col] <- as.date(database[, nome_col])
-        )
+            # shiny::req(input$var)
+            nome_col <- input$var
+            database <- raw_file() |> as.data.frame()
+            
+            switch(
+                input$choose_class,
+                "character" = database[, nome_col] <- as.character(database[, nome_col]),
+                "integer" = database[, nome_col] <- as.integer(database[, nome_col]),
+                "factor" = database[, nome_col] <- as.factor(database[, nome_col]),
+                "numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
+                "date" = database[, nome_col] <- as.date(database[, nome_col])
+            )
+            
+            database
         
-    })
+            
+    }) 
     
     
     
@@ -118,9 +127,7 @@ server <- function(input, output, session) {
         },
         
         content = function(file) {
-            # writexl::write_xlsx(raw_file(), file)
-            # foreign::write.dbf(tidied_data(), file)
-            foreign::write.dbf(raw_file(), file)
+            foreign::write.dbf(modified_file(), file)
         }
         
         
