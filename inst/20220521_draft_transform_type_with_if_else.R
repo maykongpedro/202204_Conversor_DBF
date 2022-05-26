@@ -1,3 +1,4 @@
+mtcars[, "mpg"] |> class()
 
 
 # seleção de coluna
@@ -31,7 +32,7 @@ database[, nome_col] <- coluna_alterada
 # If statement ------------------------------------------------------------
 
 # escolher a coluna
-nome_col <- "carb"
+nome_col <- "mpg"
 
 # escolher o tipo
 tipo_desejado <- c(
@@ -41,7 +42,7 @@ tipo_desejado <- c(
     "numeric"
 )
 
-escolha <- tipo_desejado[3]
+escolha <- tipo_desejado[1]
 
 # fazer o check
 if (escolha=="character") {
@@ -55,6 +56,16 @@ if (escolha=="character") {
 } else{
     database[, nome_col] <- database[, nome_col]
 }
+
+
+switch(
+    escolha,
+    "character" = database[, nome_col] <- as.character(database[, nome_col]),
+    "integer" = database[, nome_col] <- as.integer(database[, nome_col]),
+    "factor" = database[, nome_col] <- as.factor(database[, nome_col]),
+    "numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
+    "date" = database[, nome_col] <- as.date(database[, nome_col])
+)
 
 database |> dplyr::glimpse()
 

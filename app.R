@@ -39,10 +39,10 @@ ui <- shiny::navbarPage(
         shiny::actionButton(inputId = "chg_class", label = "Change"),
         
         # uiOutput [1] - column selector
-        shiny::uiOutput(outputId = "variable_selector"),
+        shiny::uiOutput(outputId = "var_selector"),
         
         # uiOutput [2] - column type
-        shiny::textOutput(outputId = "variable_type"),
+        shiny::textOutput(outputId = "var_type"),
         
         # download
         shiny::downloadButton(outputId = "out_download")
@@ -68,10 +68,10 @@ server <- function(input, output, session) {
     # output$out_preview1 <- shiny::renderTable({input$inp_file})
     
     # Transform -----------------------------------------------------------
-    output$variable_selector <- shiny::renderUI(
+    output$var_selector <- shiny::renderUI(
         
         shiny::selectInput(
-            inputId = "variable",
+            inputId = "var",
             label = "Selecione a coluna para trocar o tipo de dado:",
             choices = names(raw_file())
         )
@@ -79,12 +79,30 @@ server <- function(input, output, session) {
     )
     
     # Show the type of the selected column
-    output$variable_type <- shiny::renderText({
-        shiny::req(input$variable)
-        print(raw_file()[, input$variable] |> class())
+    output$var_type <- shiny::renderText({
+        shiny::req(input$var)
+        print(raw_file()[, input$var] |> class())
 
     }
     )
+    
+    # Convert type of the selected column
+    modified_file <- shiny::reactive({
+        
+        shiny::req(input$var)
+        
+        switch(
+            input$var,
+            "character" = database[, nome_col] <- as.character(database[, nome_col]),
+            "integer" = database[, nome_col] <- as.integer(database[, nome_col]),
+            "factor" = database[, nome_col] <- as.factor(database[, nome_col]),
+            "numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
+            "date" = database[, nome_col] <- as.date(database[, nome_col])
+        )
+        
+    })
+    
+    
     
     # Download ------------------------------------------------------------
     output$out_download <- shiny::downloadHandler(
@@ -104,6 +122,7 @@ server <- function(input, output, session) {
             # foreign::write.dbf(tidied_data(), file)
             foreign::write.dbf(raw_file(), file)
         }
+        
         
     )
 
