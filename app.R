@@ -31,8 +31,7 @@ ui <- shiny::navbarPage(
                 Factor = "Factor",
                 Character = "Character",
                 Date = "Date"
-            )
-            ,
+            ),
             selected = ""
         ),
         
@@ -59,10 +58,13 @@ ui <- shiny::navbarPage(
 server <- function(input, output, session) {
     
     # Upload --------------------------------------------------------------
-    raw_file <- shiny::reactive({
-        shiny::req(input$inp_file)
-        readxl::read_excel(path = input$inp_file$datapath) |> as.data.frame()
-    })
+    # raw_data <- shiny::reactive({
+    #     shiny::req(input$inp_file)
+    #     readxl::read_excel(path = input$inp_file$datapath) |> as.data.frame()
+    # })
+    
+    raw_data <- shiny::reactiveVal(mtcars)
+
 
     # see details of the file
     # output$out_preview1 <- shiny::renderTable({input$inp_file})
@@ -73,7 +75,7 @@ server <- function(input, output, session) {
         shiny::selectInput(
             inputId = "var",
             label = "Selecione a coluna para trocar o tipo de dado:",
-            choices = names(raw_file())
+            choices = names(raw_data())
         )
         
     )
@@ -81,35 +83,60 @@ server <- function(input, output, session) {
     # Show the type of the selected column
     output$var_type <- shiny::renderText({
         shiny::req(input$var)
-        print(raw_file()[, input$var] |> class())
+        print(raw_data()[, input$var] |> class())
 
     }
     )
     
     # Convert type of the selected column
-    modified_file <- shiny::eventReactive(input$chg_class, {
-        
+    # modified_file <- shiny::reactiveVal(raw_data())
+    shiny::observeEvent(input$chg_class, {
+
+        nome_col <- input$var
+        database <- raw_data() |> as.data.frame()
+        # nome_col <- "mpg"
+        # database <- modified_file() |> as.data.frame()
+        # database <- mtcars |> as.data.frame()
+
+        switch(
+            input$choose_class,
+            "Character" = database[, nome_col] <- as.character(database[, nome_col]),
+            "Integer" = database[, nome_col] <- as.integer(database[, nome_col]),
+            "Factor" = database[, nome_col] <- as.factor(database[, nome_col]),
+            "Numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
+            "Date" = database[, nome_col] <- as.date(database[, nome_col])
+        )
+
+        # modified_file(database) # update modified_file()
+        raw_data(database) # update modified_file()
+
+
         # Faz a troca toda vez que clico no botao "change"
         # Preciso salvar o resultado para que depois da primeira vez ele sempre
         # use o próprio modified file para realizar esse procedimento
-        
-            # shiny::req(input$var)
-            nome_col <- input$var
-            database <- raw_file() |> as.data.frame()
-            
-            switch(
-                input$choose_class,
-                "character" = database[, nome_col] <- as.character(database[, nome_col]),
-                "integer" = database[, nome_col] <- as.integer(database[, nome_col]),
-                "factor" = database[, nome_col] <- as.factor(database[, nome_col]),
-                "numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
-                "date" = database[, nome_col] <- as.date(database[, nome_col])
-            )
-            
-            database
-        
-            
-    }) 
+
+        # SÓ ESTÁ SENDO CHAMADO QUANDO CLICO PRA FAZER O DOWNLOAD, PQ?
+         # modified_file <- shiny::reactive({
+         #
+         #     # shiny::req(input$var)
+         #     nome_col <- input$var
+         #     database <- raw_file() |> as.data.frame()
+         #     browser()
+         #     switch(
+         #         input$choose_class,
+         #         "Character" = database[, nome_col] <- as.character(database[, nome_col]),
+         #         "Integer" = database[, nome_col] <- as.integer(database[, nome_col]),
+         #         "Factor" = database[, nome_col] <- as.factor(database[, nome_col]),
+         #         "Numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
+         #         "Date" = database[, nome_col] <- as.date(database[, nome_col])
+         #     )
+         #
+         #     # modified_file() <- database
+         #     # raw_file(database)
+         #     database
+         # })
+
+    })
     
     
     
@@ -127,7 +154,8 @@ server <- function(input, output, session) {
         },
         
         content = function(file) {
-            foreign::write.dbf(modified_file(), file)
+            # foreign::write.dbf(modified_file(), file)
+            foreign::write.dbf(raw_data(), file)
         }
         
         
