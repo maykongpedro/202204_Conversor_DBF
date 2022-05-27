@@ -46,9 +46,6 @@ ui <- shiny::navbarPage(
         # download
         shiny::downloadButton(outputId = "out_download")
         
-        # output [1]
-        # shiny::tableOutput(outputId = "out_preview1"),
-        
     )
 )
 
@@ -58,16 +55,10 @@ ui <- shiny::navbarPage(
 server <- function(input, output, session) {
     
     # Upload --------------------------------------------------------------
-    # raw_data <- shiny::reactive({
-    #     shiny::req(input$inp_file)
-    #     readxl::read_excel(path = input$inp_file$datapath) |> as.data.frame()
-    # })
-    
-    raw_data <- shiny::reactiveVal(mtcars)
-
-
-    # see details of the file
-    # output$out_preview1 <- shiny::renderTable({input$inp_file})
+    raw_data <- shiny::reactive({
+        shiny::req(input$inp_file)
+        readxl::read_excel(path = input$inp_file$datapath) |> as.data.frame()
+    })
     
     # Transform -----------------------------------------------------------
     output$var_selector <- shiny::renderUI(
@@ -89,15 +80,11 @@ server <- function(input, output, session) {
     )
     
     # Convert type of the selected column
-    # modified_file <- shiny::reactiveVal(raw_data())
-    shiny::observeEvent(input$chg_class, {
-
+    modified_data <- shiny::eventReactive(input$chg_class, {
+        
         nome_col <- input$var
         database <- raw_data() |> as.data.frame()
-        # nome_col <- "mpg"
-        # database <- modified_file() |> as.data.frame()
-        # database <- mtcars |> as.data.frame()
-
+        
         switch(
             input$choose_class,
             "Character" = database[, nome_col] <- as.character(database[, nome_col]),
@@ -106,38 +93,10 @@ server <- function(input, output, session) {
             "Numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
             "Date" = database[, nome_col] <- as.date(database[, nome_col])
         )
-
-        # modified_file(database) # update modified_file()
-        raw_data(database) # update modified_file()
-
-
-        # Faz a troca toda vez que clico no botao "change"
-        # Preciso salvar o resultado para que depois da primeira vez ele sempre
-        # use o próprio modified file para realizar esse procedimento
-
-        # SÓ ESTÁ SENDO CHAMADO QUANDO CLICO PRA FAZER O DOWNLOAD, PQ?
-         # modified_file <- shiny::reactive({
-         #
-         #     # shiny::req(input$var)
-         #     nome_col <- input$var
-         #     database <- raw_file() |> as.data.frame()
-         #     browser()
-         #     switch(
-         #         input$choose_class,
-         #         "Character" = database[, nome_col] <- as.character(database[, nome_col]),
-         #         "Integer" = database[, nome_col] <- as.integer(database[, nome_col]),
-         #         "Factor" = database[, nome_col] <- as.factor(database[, nome_col]),
-         #         "Numeric" = database[, nome_col] <- as.integer(database[, nome_col]),
-         #         "Date" = database[, nome_col] <- as.date(database[, nome_col])
-         #     )
-         #
-         #     # modified_file() <- database
-         #     # raw_file(database)
-         #     database
-         # })
-
+        
+        database
+        
     })
-    
     
     
     # Download ------------------------------------------------------------
@@ -154,8 +113,8 @@ server <- function(input, output, session) {
         },
         
         content = function(file) {
-            # foreign::write.dbf(modified_file(), file)
-            foreign::write.dbf(raw_data(), file)
+            foreign::write.dbf(modified_data(), file)
+            # foreign::write.dbf(raw_data(), file)
         }
         
         
