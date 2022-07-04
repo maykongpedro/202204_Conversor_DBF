@@ -16,7 +16,7 @@ ui_upload <- sidebarLayout(
       inputId = "arquivo",
       label = "Carregue um arquivo excel para converter",
       multiple = FALSE,
-      accept = c("xlsx", "xls")
+      # accept = c("xlsx", "xls")
     ),
     
     numericInput(
@@ -31,7 +31,7 @@ ui_upload <- sidebarLayout(
   
   mainPanel = mainPanel(
     h3("Pré-visualização dos dados carregados:"),
-    tableOutput(outputId = "pre_visualiacao")
+    tableOutput(outputId = "pre_visualizacao")
   )
 )
 
@@ -40,6 +40,8 @@ ui_upload <- sidebarLayout(
 # 2.Chosing a option to transform the file --------------------------------
 ui_transform <- sidebarLayout(
     sidebarPanel = sidebarPanel(
+      
+      # check box inputs to chosse a template of transformation
       
     ),
     
@@ -59,8 +61,8 @@ ui_download <- fluidRow(
 
 ui <- fluidPage(
     ui_upload,
-    ui_transform,
-    ui_download
+    # ui_transform,
+    # ui_download
 )
 
 
@@ -75,7 +77,26 @@ server <- function(input, output, session) {
     # require file input
     req(input$arquivo)
     
+    # get file extension
+    ext <- tools::file_ext(input$arquivo$name)
+    
+    # read file
+    switch(
+      ext,
+      xls = readxl::read_excel(path = input$arquivo$datapath, guess_max = 10000),
+      xlsx = readxl::read_excel(path = input$arquivo$datapath, guess_max = 10000),
+      validate("Arquivo inválido. Por gentileza, carregue um arquivo excel em formato xls ou xlsx.")
+    )
+    
   })
+  
+  # preview
+  output$pre_visualizacao <- renderTable(
+    expr = head(
+      x = raw_data(),
+      n = input$linhas
+    )
+  )
   
   
 }
