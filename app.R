@@ -16,7 +16,6 @@ ui_upload <- sidebarLayout(
       inputId = "arquivo",
       label = "Carregue um arquivo excel para converter",
       multiple = FALSE,
-      # accept = c("xlsx", "xls")
     ),
     
     numericInput(
@@ -31,7 +30,7 @@ ui_upload <- sidebarLayout(
   
   mainPanel = mainPanel(
     h3("Pré-visualização dos dados carregados:"),
-    tableOutput(outputId = "pre_visualizacao")
+    tableOutput(outputId = "preview1")
   )
 )
 
@@ -41,12 +40,26 @@ ui_upload <- sidebarLayout(
 ui_transform <- sidebarLayout(
     sidebarPanel = sidebarPanel(
       
-      # check box inputs to chosse a template of transformation
+      # radio buttons inputs to chosse a template of transformation
+      radioButtons(
+        inputId = "template",
+        label = "Escolha o template para conversão",
+        choices = c(
+          "Shape MP-LP SC" = "shp_sc",
+          "Shape MP-LP PR" = "shp_pr",
+          "Outro" = "outro"
+        ),
+        selected = "Outro"
+        # selected = character(3)
+        
+      )
+      
       
     ),
     
     mainPanel = mainPanel(
-      
+      h3("Pré-visualização dos dados transformados:"),
+      tableOutput(outputId = "preview2")
     )
 )
 
@@ -61,7 +74,7 @@ ui_download <- fluidRow(
 
 ui <- fluidPage(
     ui_upload,
-    # ui_transform,
+    ui_transform,
     # ui_download
 )
 
@@ -70,7 +83,6 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-
   # Upload ------------------------------------------------------------------
   raw_data <- reactive({
     
@@ -91,13 +103,43 @@ server <- function(input, output, session) {
   })
   
   # preview
-  output$pre_visualizacao <- renderTable(
+  output$preview1 <- renderTable(
     expr = head(
       x = raw_data(),
       n = input$linhas
     )
   )
   
+
+  # Transform ---------------------------------------------------------------
+  new_data <- reactive({
+    
+    # require radio input selection
+    req(input$template)
+    
+    # get raw data
+    raw <- raw_data()
+    
+    # make a action based in a input template
+    switch(
+      input$template,
+      shp_sc = raw <- transformar_shp_sc(raw),
+      shp_pr = raw <- transformar_shp_pr(raw),
+      outro = raw <- as.data.frame(raw)
+    )
+    
+    # return data modified
+    raw
+    
+  })
+  
+  # preview2
+  output$preview2 <- renderTable(
+    expr = head(
+      x = new_data(),
+      n = input$linhas
+    )
+  ) 
   
 }
 
