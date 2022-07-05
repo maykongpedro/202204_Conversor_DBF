@@ -1,5 +1,13 @@
 
+# Introduction -----------------------------------------------------------
+
+# Objective: App to facilitate conversion from xlsx files to dbf files
+# Support: I used the case study exercise in the 'Mastering Shiny' book as 
+# the basis for the structure of this app.
+# Link: https://mastering-shiny.org/action-transfer.html
+
 library(shiny)
+
 
 # To make it easier to understand how to use the app, I used sidebarLayout() 
 # to divide the app into three main steps:
@@ -53,7 +61,6 @@ ui_transform <- sidebarLayout(
         # selected = character(3)
         
       )
-      
       
     ),
     
@@ -169,7 +176,6 @@ server <- function(input, output, session) {
       
     }
   )
-  
   
 }
 
