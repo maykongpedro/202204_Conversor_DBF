@@ -66,7 +66,14 @@ ui_transform <- sidebarLayout(
 
 # 3. Downloading the file -------------------------------------------------
 ui_download <- fluidRow(
-    
+    column(
+      
+      width = 6,
+      
+      downloadButton(
+        outputId = "download"
+      )
+    )
 )
 
 
@@ -75,7 +82,7 @@ ui_download <- fluidRow(
 ui <- fluidPage(
     ui_upload,
     ui_transform,
-    # ui_download
+    ui_download
 )
 
 
@@ -112,7 +119,7 @@ server <- function(input, output, session) {
   
 
   # Transform ---------------------------------------------------------------
-  new_data <- reactive({
+  transformed_data <- reactive({
     
     # require radio input selection
     req(input$template)
@@ -136,10 +143,33 @@ server <- function(input, output, session) {
   # preview2
   output$preview2 <- renderTable(
     expr = head(
-      x = new_data(),
+      x = transformed_data(),
       n = input$linhas
     )
   ) 
+  
+
+  # Download ----------------------------------------------------------------
+  output$download <- downloadHandler(
+    
+    filename = function(){
+      
+      # get complete name of the file without extension
+      file_path <- tools::file_path_sans_ext(input$arquivo$name)
+      paste0(file_path,".dbf")
+    },
+    
+    content = function(file){
+      
+      # convert and export data
+      foreign::write.dbf(
+        dataframe = transformed_data(),
+        file = file
+      )
+      
+    }
+  )
+  
   
 }
 
