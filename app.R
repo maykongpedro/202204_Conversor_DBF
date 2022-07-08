@@ -7,7 +7,7 @@
 # Link: https://mastering-shiny.org/action-transfer.html
 
 library(shiny)
-
+options(shiny.maxRequestSize = 30*1024^2)
 
 # To make it easier to understand how to use the app, I used sidebarLayout() 
 # to divide the app into three main steps:
