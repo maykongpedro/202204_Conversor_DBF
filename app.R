@@ -122,6 +122,7 @@ server <- function(input, output, session) {
       x = raw_data(),
       n = input$linhas
     )
+    # expr = resumir_tipos_de_dados(raw_data())
   )
   
 
@@ -153,6 +154,7 @@ server <- function(input, output, session) {
       x = transformed_data(),
       n = input$linhas
     )
+    # expr = resumir_tipos_de_dados(transformed_data())
   ) 
   
 
