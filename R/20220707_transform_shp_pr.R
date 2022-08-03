@@ -14,13 +14,14 @@ transformar_shp_pr <- function(database) {
         dplyr::mutate(
             REMSOFT_ID = as.integer(REMSOFT_ID),
             ACTION = as.integer(ACTION),
+            PREBLOCK = as.character(PREBLOCK),
+            REASONCODE = as.character(REASONCODE),
+            BESTPERIOD = as.character(BESTPERIOD),
+            TREATMENTS = as.character(TREATMENTS),
             CUT_PERIOD = as.integer(CUT_PERIOD),
             IDADE = as.integer(IDADE),
             THEME11 = as.character(THEME11),
             THEME13 = as.character(THEME13),
-            REASONCODE = as.integer(REASONCODE),
-            PREBLOCK = as.character(PREBLOCK),
-            TREATMENTS = as.character(TREATMENTS)
         ) |> 
         as.data.frame()
     

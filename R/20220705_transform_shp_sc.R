@@ -14,6 +14,11 @@ transformar_shp_sc <- function(database) {
         dplyr::mutate(
             REMSOFT_ID = as.integer(REMSOFT_ID),
             ACTION = as.integer(ACTION),
+            BLOCK = as.character(BLOCK),
+            PREBLOCK = as.character(PREBLOCK),
+            REASONCODE = as.character(REASONCODE),
+            BESTPERIOD = as.character(BESTPERIOD),
+            TREATMENTS = as.character(TREATMENTS),
             CUT_PERIOD = as.integer(CUT_PERIOD),
             THEME11 = as.character(THEME11),
             IDADE = as.integer(IDADE)
