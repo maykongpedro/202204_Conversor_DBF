@@ -11,6 +11,13 @@
 transformar_shp_pr <- function(database) {
     
     db <- database |>
+        # corrigir o bloco que é identificado como data no excel
+        dplyr::mutate(
+            THEME13 = dplyr::case_when(
+                THEME13 == "44652" ~ "APR01",
+                TRUE ~ THEME13
+            )
+        ) |> 
         dplyr::mutate(
             REMSOFT_ID = as.integer(REMSOFT_ID),
             ACTION = as.integer(ACTION),
@@ -27,3 +34,4 @@ transformar_shp_pr <- function(database) {
     
     return(db)
 }
+
